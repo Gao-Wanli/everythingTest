@@ -10,7 +10,6 @@ class Solution:
             while curr[c] > 1:
                 curr[s[left]] -= 1
                 left += 1
-                
             ans = max(ans, right-left+1)
         
         return ans

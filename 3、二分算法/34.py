@@ -21,8 +21,8 @@ class Solution:
         # nums里没有target，直接返回
         if start == -1 or start == len(nums) or nums[start] != target:
             return [-1, -1]
-
         end = lower_bound(nums, target+1)
+        
         return [start, end-1]
 
 

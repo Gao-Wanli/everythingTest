@@ -5,7 +5,7 @@ import math
 
 # 添加命令行参数
 import argparse
-parser = argparse.ArgumentParser(description="Parser for DiffusionE")
+parser = argparse.ArgumentParser(description="Parser for MultiHeadAttention")
 parser.add_argument('--gpu', type=int, default=1)
 # 解析命令行参数
 args = parser.parse_args()

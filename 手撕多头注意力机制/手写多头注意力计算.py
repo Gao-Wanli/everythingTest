@@ -3,38 +3,23 @@ from torch import nn
 import torch.functional as F
 import math
 
-# 添加命令行参数
-import argparse
-parser = argparse.ArgumentParser(description="Parser for MultiHeadAttention")
-parser.add_argument('--gpu', type=int, default=-1)
-# 解析命令行参数
-args = parser.parse_args()
-torch.cuda.set_device(args.gpu)
-
-# 具体实现
-# 生成测试数据 (batchsize, time, dimension)
-X = torch.randn(128, 64, 512)
-
-# 多头注意力的参数
-model_dim = 512
-head_n = 8
 
 class MultiHeadAttention(nn.Module):
-    def __init__(self, head_n, model_dim):
+    def __init__(self, n_head, d_model):
         super(MultiHeadAttention, self).__init__()
         
-        self.head_n = head_n
-        self.head_d = model_dim
+        self.n_head = n_head
+        self.head_d = d_model
         # 每一头的维度
-        self.att_dim = self.head_d // self.head_n     
+        self.att_dim = self.head_d // self.n_head     
         
-        self.W_q = nn.Linear(model_dim, model_dim)
-        self.W_k = nn.Linear(model_dim, model_dim)
-        self.W_v = nn.Linear(model_dim, model_dim)
-        self.W_combine = nn.Linear(model_dim, model_dim)
+        self.W_q = nn.Linear(d_model, d_model)
+        self.W_k = nn.Linear(d_model, d_model)
+        self.W_v = nn.Linear(d_model, d_model)
+        self.W_combine = nn.Linear(d_model, d_model)
         self.softmax = nn.Softmax(dim=-1)
         
-    def forward(self, q, k, v):
+    def forward(self, q, k, v, mask=None):
         batch_size, time, dimension = q.shape
         
         q = self.W_q(q)
@@ -47,9 +32,10 @@ class MultiHeadAttention(nn.Module):
         v = v.view(batch_size, time, self.head_n, self.att_dim).permute(0, 2, 1, 3)
         
         score = q @ k.transpose(2, 3) / math.sqrt(self.att_dim)
-        # 生成下三角矩阵，相当于mask掉上三角
-        mask = torch.tril(torch.ones(time, time))
-        score = score.masked_fill(mask == 0, float("-inf"))
+        
+        if mask is not None:
+            # mask = torch.tril(torch.ones(time, time))
+            score = score.masked_fill(mask == 0, float("-inf"))
         score = self.softmax(score)
 
         output = score @ v
@@ -59,10 +45,6 @@ class MultiHeadAttention(nn.Module):
         output = self.W_combine(output)
         return output
     
-
-attention = MultiHeadAttention(head_n, model_dim)
-out = attention(X, X, X)
-print(out, out.shape)
         
         
         
